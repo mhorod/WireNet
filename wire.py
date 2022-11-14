@@ -17,3 +17,14 @@ class Wire(Enum):
             return Wire.ZERO
         else:
             return Wire.INVALID
+
+    @staticmethod
+    def to_string(wire):
+        if wire == Wire.PLUS:
+            return '+'
+        elif wire == Wire.MINUS:
+            return '-'
+        elif wire == Wire.ZERO:
+            return '0'
+        else:
+            return '#'
