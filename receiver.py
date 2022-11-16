@@ -1,6 +1,8 @@
 from queue import Queue
 
 from wire import *
+import sys
+
 
 class Receiver:
     def __init__(self, window_size, decoder):
@@ -14,10 +16,9 @@ class Receiver:
 
     def get_packet(self):
         return self.packets.get()
-    
+
     def run(self, connection):
         self.connection = connection
-        self.sync()
         while True:
             self.receive_bits()
 
@@ -27,7 +28,9 @@ class Receiver:
         if bit is not None:
             self.decoder.push_bit(bit)
             if self.decoder.has_packet():
-                self.packets.put(self.decoder.get_packet())
+                packet = self.decoder.get_packet()
+                self.packets.put(packet)
+                print("Received packet: " + str(packet))
         else:
             self.decoder.reset()
 
@@ -36,7 +39,8 @@ class Receiver:
         best_index = 0
         best_strength = 0
         for i in range(0, self.window_size):
-            bits, strength = self.signal_to_bits(signal[i:i + self.window_size])
+            bits, strength = self.signal_to_bits(
+                signal[i:i + self.window_size])
 
             if bits is not None and strength > best_strength:
                 best_index = i
@@ -45,16 +49,15 @@ class Receiver:
         underflow = best_index + self.window_size - len(signal)
         self.receive_signal(underflow)
 
-
     def receive_signal(self, bit_count):
         signal = []
         for _ in range(bit_count):
-            while True:
-                self.connection.send(b'?')
-                state = str(self.connection.recv(1), 'utf-8')
-                signal.append(Wire.from_string(state))
+            self.connection.send(b'?')
+            state = str(self.connection.recv(1), 'utf-8')
+            print(state, end="")
+            sys.stdout.flush()
+            signal.append(Wire.from_string(state))
         return signal
-
 
     def signal_to_bits(self, signal):
         plus_count, minus_count = 0, 0
@@ -72,4 +75,3 @@ class Receiver:
             return 0, minus_count / len(signal)
         else:
             return None, None
-

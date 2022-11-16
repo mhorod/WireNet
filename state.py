@@ -11,8 +11,9 @@ import threading
 import time
 
 LOCATION = '/tmp/shared_state.sock'
-DELAY = 1.0
+DELAY = 0.25
 READS = 2
+
 
 class State:
 
@@ -47,6 +48,7 @@ class State:
         else:
             self.state = float('nan')
 
+
 parser = argparse.ArgumentParser(description='Shared State Server')
 parser.add_argument('--location', default=LOCATION)
 parser.add_argument('--delay', type=float, default=DELAY)
@@ -68,6 +70,7 @@ with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as server_socket:
         while True:
             (client_socket, client_address) = server_socket.accept()
             logging.info(f'Client {client_address} connected')
+
             def client_thread(client_socket):
                 try:
                     while True:
@@ -80,11 +83,12 @@ with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as server_socket:
                                 client_socket.send(bytes(state.read(), 'utf8'))
                             except OSError:
                                 return
-                        elif command in [ b'+', b'-' ]:
+                        elif command in [b'+', b'-']:
                             state.write(str(command, 'utf8'))
                 finally:
                     client_socket.close()
-            threading.Thread(target=client_thread, args=(client_socket,)).start()
+            threading.Thread(target=client_thread,
+                             args=(client_socket,)).start()
     finally:
         server_socket.close()
         try:
