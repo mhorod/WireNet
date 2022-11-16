@@ -80,7 +80,6 @@ class BytesDecoder(DecoderPipelineStage):
         self.bits.append(bit)
 
     def has(self):
-        print(len(self.bits), self.length)
         return len(self.bits) >= self.length
 
     def get(self):
@@ -102,7 +101,6 @@ class DecoderPipeline:
         self.result = []
 
     def push_bit(self, bit):
-        print(bit)
         self.stages[self.current_stage].push_bit(bit)
         if self.stages[self.current_stage].has():
             print(f"Stage {self.current_stage} done")
@@ -141,7 +139,7 @@ class Decoder:
             self.push_bit(bit)
 
     def has_packet(self):
-        return self.packet is not None
+        return self.pipeline.has()
 
     def get_packet(self):
         _, dest, src, _, message = self.pipeline.get()

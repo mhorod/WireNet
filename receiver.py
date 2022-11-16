@@ -52,12 +52,18 @@ class Receiver:
     def receive_signal(self, bit_count):
         signal = []
         for _ in range(bit_count):
-            self.connection.send(b'?')
-            state = str(self.connection.recv(1), 'utf-8')
-            print(state, end="")
-            sys.stdout.flush()
-            signal.append(Wire.from_string(state))
+            signal.append(self.get_wire_state())
+        if signal[0] != signal[1]:
+            signal[0] = signal[1]
+            signal[1] = self.get_wire_state()
         return signal
+
+    def get_wire_state(self):
+        self.connection.send(b'?')
+        state = str(self.connection.recv(1), 'utf-8')
+        print(state, end="")
+        sys.stdout.flush()
+        return Wire.from_string(state)
 
     def signal_to_bits(self, signal):
         plus_count, minus_count = 0, 0
